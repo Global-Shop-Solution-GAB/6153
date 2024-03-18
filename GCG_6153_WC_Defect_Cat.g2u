@@ -1,0 +1,370 @@
+Program.Sub.ScreenSU.Start
+Gui.FormWCDefect..Create
+Gui.FormWCDefect..Caption("WorkCenter Defect Categories")
+Gui.FormWCDefect..Size(5805,6900)
+Gui.FormWCDefect..MinX(0)
+Gui.FormWCDefect..MinY(0)
+Gui.FormWCDefect..Position(0,0)
+Gui.FormWCDefect..BackColor(-2147483633)
+Gui.FormWCDefect..MousePointer(0)
+Gui.FormWCDefect..Sizeable(False)
+Gui.FormWCDefect..Event(UnLoad,FormWCDefect_UnLoad)
+Gui.FormWCDefect.lblWC.Create(Label,"WorkCenter",True,1935,255,0,105,180,True,0,"Arial",8,-2147483633,0)
+Gui.FormWCDefect.txtWC.Create(TextBox,"",True,1215,300,0,105,435,True,0,"Arial",8,-2147483643,1)
+Gui.FormWCDefect.txtWC.Event(GotFocus,txtWC_GotFocus)
+Gui.FormWCDefect.txtWC.Event(LostFocus,txtWC_LostFocus)
+Gui.FormWCDefect.txtWC.Event(KeyPressEnter,txtWC_KeyPressEnter)
+Gui.FormWCDefect.cmdWC.Create(Button)
+Gui.FormWCDefect.cmdWC.Size(420,375)
+Gui.FormWCDefect.cmdWC.Position(1410,390)
+Gui.FormWCDefect.cmdWC.Caption("^")
+Gui.FormWCDefect.cmdWC.Event(Click,cmdWC_Click)
+Gui.FormWCDefect.lblCat.Create(Label,"Category",True,1935,255,0,2085,180,True,0,"Arial",8,-2147483633,0)
+Gui.FormWCDefect.txtCat.Create(TextBox,"",True,2835,300,0,1935,435,True,0,"Arial",8,-2147483643,1)
+Gui.FormWCDefect.txtCat.MaxLength(20)
+Gui.FormWCDefect.txtCat.Event(GotFocus,txtCat_GotFocus)
+Gui.FormWCDefect.cmdAdd.Create(Button)
+Gui.FormWCDefect.cmdAdd.Size(735,375)
+Gui.FormWCDefect.cmdAdd.Position(4845,390)
+Gui.FormWCDefect.cmdAdd.Caption("Add")
+Gui.FormWCDefect.cmdAdd.Event(Click,cmdAdd_Click)
+Gui.FormWCDefect.GsGridCAT.Create(GsGridControl)
+Gui.FormWCDefect.GsGridCAT.Size(5430,4950)
+Gui.FormWCDefect.GsGridCAT.Position(150,930)
+Gui.FormWCDefect.GsGridCAT.Anchor(15)
+Gui.FormWCDefect.GsGridCAT.Event(RowCellClick,GsGridCAT_RowCellClick)
+Gui.FormWCDefect.cmdSave.Create(Button)
+Gui.FormWCDefect.cmdSave.Size(855,375)
+Gui.FormWCDefect.cmdSave.Position(105,5985)
+Gui.FormWCDefect.cmdSave.Anchor(6)
+Gui.FormWCDefect.cmdSave.Caption("Save")
+Gui.FormWCDefect.cmdSave.Event(Click,cmdSave_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+V.Global.iRec.Declare(Long,0)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.CallSub(Get_Data)
+F.Intrinsic.Control.CallSub(Set_Properties)
+
+Gui.FormWCDefect..Show
+Gui.FormWCDefect..AlwaysOnTop(True)
+GUi.FormWCDefect..AlwaysOnTop(False)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Main.End
+
+Program.Sub.FormWCDefect_UnLoad.Start
+F.Intrinsic.Control.SetErrorHandler("FormWCDefect_UnLoad_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.If(V.ODBC.Con.State,=,1)
+	F.ODBC.Connection!con.Close
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("FormWCDefect_UnLoad_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+Program.Sub.FormWCDefect_UnLoad.End
+
+Program.Sub.GsGridCAT_RowCellClick.Start
+F.Intrinsic.Control.SetErrorHandler("GsGridCAT_RowCellClick_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.If(V.Args.Column.UCase,=,"DELETE_ROW")
+	F.Data.DataTable.DeleteRow("WCCat",V.Args.RowIndex)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GsGridCAT_RowCellClick_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.GsGridCAT_RowCellClick.End
+
+Program.Sub.txtWC_LostFocus.Start
+F.Intrinsic.Control.SetErrorHandler("txtWC_LostFocus_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.CallSub(Get_Data)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("txtWC_LostFocus_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.txtWC_LostFocus.End
+
+Program.Sub.txtWC_KeyPressEnter.Start
+F.Intrinsic.Control.SetErrorHandler("txtWC_KeyPressEnter_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.CallSub(txtWC_LostFocus)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("txtWC_KeyPressEnter_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.txtWC_KeyPressEnter.End
+
+Program.Sub.txtWC_GotFocus.Start
+F.Intrinsic.Control.SetErrorHandler("txtWC_GotFocus_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+Gui.FormWCDefect.txtWC.SelectAll
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("txtWC_GotFocus_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.txtWC_GotFocus.End
+
+Program.Sub.cmdSave_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmdSave_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sWc.Declare(String,"")
+V.Local.sSql.Declare(String,"")
+
+V.Local.sWc.Set(V.Screen.FormWCDefect!txtWC.Text)
+
+F.Intrinsic.Control.If(V.Local.sWC.Trim,<>,"")
+	F.ODBC.Connection!Con.OpenCompanyConnection
+	f.Intrinsic.String.Build("Delete From GCG_6153_WC_CAT Where WorkCenter = '{0}'",V.Screen.FormWCDefect!txtWC.Text,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+	F.Data.DataTable.SaveToDB("WCCat","con","GCG_6153_WC_CAT","WorkCenter*!*REC_NO",256,"WorkCenter@!@WorkCenter*!*Rec_NO@!@Rec_NO*!*Category@!@Category")
+	F.ODBC.Connection!Con.Close
+	F.Intrinsic.UI.Msgbox("Workcenter Catergories Saved..........","Attention")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdSave_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.cmdSave_Click.End
+
+Program.Sub.cmdWC_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmdWC_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sRet.Declare(String,"")
+
+F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+F.Intrinsic.UI.Browser(400,"",V.Local.sRet)
+
+'Beginning workcenter browser
+F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+	F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+	
+	Gui.FormWCDefect.txtWC.Text(V.Local.sRet.Trim)
+	
+	F.Intrinsic.Control.CallSub(txtWC_LostFocus)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdWC_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.cmdWC_Click.End
+
+Program.Sub.Get_Data.Start
+F.Intrinsic.Control.SetErrorHandler("txtWC_KeyPressEnter_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sSql.Declare(String,"")
+V.Local.sWC.Declare(String,"")
+
+F.ODBC.Connection!Con.OpenCompanyConnection
+
+F.Intrinsic.Control.If(V.DataTable.WCCat.Exists)
+	V.Local.sWC.Set(V.Screen.FormWCDefect!txtWC.Text)
+	F.Intrinsic.String.Build("Select WorkCenter, Rec_No, rtrim(Category) as Category From GCG_6153_WC_Cat Where WorkCenter = '{0}' Order By Rec_No",V.Local.sWC.Trim,V.Local.sSql)
+	
+	F.Data.DataTable.CreateFromSQL("TEMP","con",V.Local.sSql,True)
+	
+	F.Data.DataTable.DeleteRow("WCCat")
+	F.Data.DataTable.AcceptChanges("WCCat")
+	
+	F.Data.DataTable.Merge("TEMP","WCCat",False,2)
+	
+	F.Data.DataTable.Close("TEMP")
+	
+	F.Intrinsic.Control.If(V.DataTable.WCCat.RowCount--,=,-1)
+		V.Global.iRec.Set(0)
+	F.Intrinsic.Control.Else
+		V.Global.iRec.Set(V.DataTable.WCCat(V.DataTable.WCCat.RowCount--).Rec_No!FieldValLong)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Else
+	F.Data.DataTable.CreateFromSQL("WCCat","con","Select WorkCenter,Rec_No,Category From GCG_6153_WC_Cat Where WorkCenter = '-1ZZ'",True)
+	F.Data.DataTable.AddColumn("WCCat","DELETE_ROW",String)
+	V.Global.iRec.Set(0)
+F.Intrinsic.Control.EndIf
+
+F.ODBC.Connection!Con.Close
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("txtWC_KeyPressEnter_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Get_Data.End
+
+Program.Sub.Set_Properties.Start
+F.Intrinsic.Control.SetErrorHandler("txtWC_KeyPressEnter_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+Gui.FormWCDefect.GsGridCAT.AddGridviewFromDatatable("GWCCAT","WCCAT")
+
+Gui.FormWCDefect.GsGridCAT.ColumnEdit("GWCCAT","DELETE_ROW","EditorButton","Delete")
+
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","DELETE_ROW","Caption"," ")
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Rec_NO","Caption","Record #")
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Category","Caption","Category")
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Workcenter","Caption","Workcenter")
+
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","DELETE_ROW","Visible",True)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Rec_NO","Visible",False)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Category","Visible",True)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Workcenter","Visible",False)
+
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","DELETE_ROW","ReadOnly",True)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Rec_NO","ReadOnly",True)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Category","ReadOnly",False)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Workcenter","ReadOnly",True)
+
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","DELETE_ROW","AllowEdit",False)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Rec_NO","AllowEdit",False)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Category","AllowEdit",True)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Workcenter","AllowEdit",False)
+
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","DELETE_ROW","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Rec_NO","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Category","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Workcenter","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","DELETE_ROW","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Rec_NO","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Category","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Workcenter","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","DELETE_ROW","HeaderFontBold",True)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Rec_NO","HeaderFontBold",True)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Category","HeaderFontBold",True)
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","Workcenter","HeaderFontBold",True)
+
+Gui.FormWCDefect.GsGridCAT.SetColumnProperty("GWCCAT","DELETE_ROW","MaxWidth",50)
+
+Gui.FormWCDefect.GsGridCAT.MainView("GWCCAT")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("txtWC_KeyPressEnter_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Set_Properties.End
+
+Program.Sub.txtCat_GotFocus.Start
+F.Intrinsic.Control.SetErrorHandler("txtCat_GotFocus_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+Gui.FormWCDefect.txtCat.SelectAll
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("txtCat_GotFocus_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.txtCat_GotFocus.End
+
+Program.Sub.cmdAdd_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmdAdd_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sCat.Declare(String,"")
+V.Local.sWC.Declare(String,"")
+
+V.Local.sCat.Set(V.Screen.FormWCDefect!txtCat.Text)
+V.Local.sWC.Set(V.Screen.FormWCDefect!txtWC.Text)
+
+F.Intrinsic.Control.If(V.Local.sCat.Trim,<>,"","AND",V.Local.sWC.Trim,<>,"")
+	F.Intrinsic.Math.Add(V.Global.iRec,1,V.Global.iRec)
+	F.Data.DataTable.AddRow("WCCat","WorkCenter",V.Local.sWC,"Rec_No",V.Global.iRec,"Category",V.Local.sCat.Trim)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdAdd_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_5153_WC_Defect_Cat.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(FormWCDefect_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.cmdAdd_Click.End
