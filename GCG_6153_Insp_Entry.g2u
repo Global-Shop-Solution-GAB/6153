@@ -1,0 +1,776 @@
+Program.Sub.ScreenSU.Start
+Gui.FormSerialInspect..Create
+Gui.FormSerialInspect..Caption("Serial Inspection Entry")
+Gui.FormSerialInspect..Size(9870,9570)
+Gui.FormSerialInspect..MinX(0)
+Gui.FormSerialInspect..MinY(0)
+Gui.FormSerialInspect..Position(0,0)
+Gui.FormSerialInspect..BackColor(-2147483633)
+Gui.FormSerialInspect..MousePointer(0)
+Gui.FormSerialInspect..Event(UnLoad,FormSerialInspect_UnLoad)
+Gui.FormSerialInspect.lblJob.Create(Label,"Job",True,1185,255,0,105,240,True,0,"Arial",8,-2147483633,0)
+Gui.FormSerialInspect.lblSuffix.Create(Label,"Suffix",True,675,255,0,1470,240,True,0,"Arial",8,-2147483633,0)
+Gui.FormSerialInspect.lblSeq.Create(Label,"Sequence",True,1185,255,0,2280,240,True,0,"Arial",8,-2147483633,0)
+Gui.FormSerialInspect.txtJob.Create(TextBox,"",True,1215,300,0,105,480,True,0,"Arial",8,-2147483643,1)
+Gui.FormSerialInspect.txtJob.Locked(True)
+Gui.FormSerialInspect.txtSuffix.Create(TextBox,"",True,660,300,0,1470,480,True,0,"Arial",8,-2147483643,1)
+Gui.FormSerialInspect.txtSuffix.Locked(True)
+Gui.FormSerialInspect.txtSeq.Create(TextBox,"",True,1215,300,0,2280,480,True,0,"Arial",8,-2147483643,1)
+Gui.FormSerialInspect.txtSeq.Locked(True)
+Gui.FormSerialInspect.lblSerial.Create(Label,"Serial Number",True,1935,255,0,105,1335,True,0,"Arial",8,-2147483633,0)
+Gui.FormSerialInspect.lblSatus.Create(Label,"Inspection Status",True,1935,255,0,2760,1335,True,0,"Arial",8,-2147483633,0)
+Gui.FormSerialInspect.lblCat.Create(Label,"Defect Category",True,1935,255,0,6270,1335,True,0,"Arial",8,-2147483633,0)
+Gui.FormSerialInspect.lblComm.Create(Label,"Comments / Callout",True,1935,255,0,105,2175,True,0,"Arial",8,-2147483633,0)
+Gui.FormSerialInspect.lblResult.Create(Label,"Inspection Results",True,1935,255,0,105,3450,True,0,"Arial",8,-2147483633,0)
+Gui.FormSerialInspect.txtSerial.Create(TextBox,"",True,2535,300,0,90,1590,True,0,"Arial",8,-2147483643,1)
+Gui.FormSerialInspect.txtSerial.MaxLength(30)
+Gui.FormSerialInspect.txtSerial.Event(KeyPressEnter,txtSerial_KeyPressEnter)
+Gui.FormSerialInspect.txtSerial.Event(LostFocus,txtSerial_LostFocus)
+Gui.FormSerialInspect.ddlStatus.Create(DropDownList)
+Gui.FormSerialInspect.ddlStatus.Size(3360,330)
+Gui.FormSerialInspect.ddlStatus.Position(2760,1575)
+Gui.FormSerialInspect.ddlCat.Create(DropDownList)
+Gui.FormSerialInspect.ddlCat.Size(3360,330)
+Gui.FormSerialInspect.ddlCat.Position(6270,1575)
+Gui.FormSerialInspect.txtComm.Create(TextBox,"",True,9525,300,0,105,2415,True,0,"Arial",8,-2147483643,1)
+Gui.FormSerialInspect.txtComm.MaxLength(100)
+Gui.FormSerialInspect.cmdSave.Create(Button)
+Gui.FormSerialInspect.cmdSave.Size(855,375)
+Gui.FormSerialInspect.cmdSave.Position(105,2865)
+Gui.FormSerialInspect.cmdSave.Caption("Save")
+Gui.FormSerialInspect.cmdSave.Event(Click,cmdSave_Click)
+Gui.FormSerialInspect.GsGridResults.Create(GsGridControl)
+Gui.FormSerialInspect.GsGridResults.Size(9525,5295)
+Gui.FormSerialInspect.GsGridResults.Position(105,3690)
+Gui.FormSerialInspect.GsGridResults.Anchor(15)
+Gui.FormSerialInspect.GsGridResults.Event(RowCellClick,GsGridResults_RowCellClick)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+V.Global.sFirstSeq.Declare(String,"")
+V.Global.sLastSeq.Declare(String,"")
+V.Global.sPrevSeq.Declare(String,"")
+V.Global.sWC.Declare(String,"")
+V.Global.sEmp.Declare(String,"")
+V.Global.sName.Declare(String,"")
+V.Global.sPart.Declare(String,"")
+V.Global.iCount.Declare(Long,0)
+V.Global.sSerials.Declare(String,"")
+V.Global.bShow.Declare(Boolean,False)
+V.Global.iQty.Declare(Long,0)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.iCount.Declare(Long,0)
+V.Local.sTemp.Declare(String,"")
+V.Local.sSql.Declare(String,"")
+V.Local.sSeq.Declare(String,"")
+V.Local.sData.Declare(String,"")
+V.Local.dDate.Declare(Date)
+V.Local.sTemp2.Declare(String,"")
+V.Local.sGAB.Declare(String,"")
+
+F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+	F.Intrinsic.Control.Case(50600)
+		V.Passed.UpdateJobsView-Script3-1.Set("Inspect")
+		
+	F.Intrinsic.Control.Case(50612)
+		V.Global.sEmp.Set(V.Passed.Employee.Trim)
+		V.Global.sName.Set(V.Passed.EmployeeName.Trim)
+
+		F.Intrinsic.BDF.Load("UpdateJobsView-gvWOOperations-bdf","UpdateJobsView-gvWOOperations-bdf")
+		F.Intrinsic.BDF.Clone("UpdateJobsView-gvWOOperations-bdf","TempBDF")
+		
+		F.Intrinsic.BDF.ReadRowCount("UpdateJobsView-gvWOOperations-bdf",V.Local.iCount)
+		
+		F.Intrinsic.Control.If(V.Local.iCount,>,0)
+			F.Intrinsic.BDF.ReadRow("UpdateJobsView-gvWOOperations-bdf",0,V.Local.sTemp)
+			F.Intrinsic.Control.If(V.Local.sTemp.Trim,<>,"")
+				F.Intrinsic.Control.CallSub(Populate_Screen,"BDF",V.Local.sTemp)
+				F.Intrinsic.Control.CallSub(Set_Properties)
+				
+				Gui.FormSerialInspect..Show
+				Gui.FormSerialInspect..AlwaysOnTop(True)
+				Gui.FormSerialInspect..AlwaysOnTop(False)
+				
+				Gui.FormSerialInspect.txtSerial.SetFocus
+				
+				Gui.FormSerialInspect..WaitForDismiss
+				
+				F.Intrinsic.String.Split(V.Local.sTemp,"|~|",V.Local.sTemp)
+				F.Intrinsic.Control.For(V.Local.iCount,0,V.Local.sTemp.UBound,1)
+					F.Intrinsic.Control.If(V.Local.iCount,=,0)
+						V.Local.sData.Set(V.Local.sTemp(V.Local.iCount).Trim)
+					F.Intrinsic.Control.Else
+						F.Intrinsic.Control.If(V.Local.iCount,=,3)
+							F.Intrinsic.String.Format(V.Global.iCount.Float,"0.00",V.Local.sTemp2)
+							F.Intrinsic.String.Build("{0}|~|{1}",V.Local.sData,V.Local.sTemp2,V.Local.sData)
+						F.Intrinsic.Control.Else
+							F.Intrinsic.String.Build("{0}|~|{1}",V.Local.sData,V.Local.sTemp(V.Local.iCount).Trim,V.Local.sData)
+						F.Intrinsic.Control.EndIf
+					F.Intrinsic.Control.EndIf
+				F.Intrinsic.Control.Next(V.Local.iCount)
+				F.Intrinsic.BDF.WriteRow("TempBDF",V.Local.sData)
+				F.Intrinsic.BDF.Save("TempBDF","UpdateJobsView-gvWOOperations-bdf")
+				
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+		
+	F.Intrinsic.Control.Case(16510)
+		'Serial Number V.Passed.000014
+		'Job V.Passed.000005
+		'Suffix V.Passed.000006
+		F.Intrinsic.Control.If(V.Caller.GasDir.Right1,=,"\")
+			F.Intrinsic.String.Build("{0}GCG_6153_Set_Focus.g2u",V.Caller.GasDir,V.Local.sGAB)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.String.Build("{0}\GCG_6153_Set_Focus.g2u",V.Caller.GasDir,V.Local.sGAB)
+		F.Intrinsic.Control.EndIf
+		'Checking that Serial has passed last Labor Step that is that needs inspection
+		F.Intrinsic.String.Build("Select Top 1 Seq From V_Job_Operations Where Job = '{0}' and Suffix = '{1}' and LMO = 'L' and Part In(Select Distinct WorkCenter From GCG_6153_WC_Cat) Order by Seq Desc",V.Passed.000005.Trim,V.Passed.000006.Trim,V.Local.sSql)
+		
+		F.ODBC.Connection!Con.OpenCompanyConnection
+		
+		F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sSeq)
+		
+		F.Intrinsic.Control.If(V.Local.sSeq.Trim,<>,"")
+			F.Intrinsic.String.Build("Select Top 1 rtrim(Status) From GCG_6153_SERIAL_INSP Where Job = '{0}' and Suffix = '{1}' and Seq = '{2}' and Serial_Number = '{3}' Order by Key_Seq Desc",V.Passed.000005.Trim,V.Passed.000006.Trim,V.Local.sSeq.Trim,V.Passed.000014.Trim,V.Local.sSql)
+			F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSql,V.Local.sTemp)
+			F.Intrinsic.Control.If(V.Local.sTemp.UCase,<>,"PASS")
+				F.Intrinsic.String.Build("Serial Number {0} has not cleared all Inspections",V.Passed.000014.Trim,V.Local.sTemp)
+				F.Intrinsic.UI.Msgbox(V.Local.sTemp)
+				'cancel core process
+				V.Passed.777777.Set(1)
+				F.Global.General.CallAsyncGAS(V.Local.sGAB,V.Passed.000014.HWnd,2)
+			F.Intrinsic.Control.Else
+				f.Intrinsic.Control.If(V.Passed.000014,<>,"")
+   					V.Passed.000010.Set(V.Passed.000014)
+   					V.Passed.000015.Set("1")
+				f.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+		
+		F.ODBC.Connection!con.Close
+
+	F.Intrinsic.Control.Case(16520)
+'		F.Global.General.CallAsyncGAS(V.Local.sGAB,V.Passed.000014.HWnd,2)
+		F.Intrinsic.API.SetControlFocus(V.Passed.000014.HWnd)
+		
+	F.Intrinsic.Control.CaseElse
+		F.Intrinsic.Control.If(V.Ambient.IsInTaskScheduler,=,True)
+			F.Intrinsic.Date.DateAdd("YYYY",-1,V.Ambient.Date,V.Local.dDate)
+			F.ODBC.Connection!Con.OpenCompanyConnection
+			F.Intrinsic.String.Build("Select Job, Suffix, Part From V_Job_Header Where Date_Closed <= '{0}' and Date_Closed <> '1900-01-01'",V.Local.dDate.PervasiveDate,V.Local.sSql)
+			F.Data.DataTable.CreateFromSQL("Jobs","con",V.Local.sSql,True)
+			F.Intrinsic.Control.For(V.Local.iCount,0,V.DataTable.Jobs.RowCount--,1)
+				F.Intrinsic.String.Build("Select Job, Suffix, Seq,Serial_Number, Key_Seq, WorkCenter, Status, Category, Comment, Employee, Insp_By, Insp_Date, Part From GCG_6153_Serial_Insp Where Job = '{0}' and Suffix = '{1}' and Part = '{2}'",V.DataTable.Jobs(V.Local.iCount).Job!FieldValTrim,V.DataTable.Jobs(V.Local.iCount).Suffix!FieldValTrim,V.DataTable.Jobs(V.Local.iCount).Part!FieldValTrim,V.Local.sSql)
+				F.Data.DataTable.CreateFromSQL("Insp","con",V.Local.sSql,True)
+				F.Intrinsic.Control.If(V.DataTable.Insp.RowCount--,<>,-1)
+					F.Data.DataTable.SaveToDB("Insp","con","GCG_6153_HIST_INSP","",128,"Job@!@Job*!*Suffix@!@Suffix*!*Seq@!@Seq*!*Key_Seq@!@Key_Seq*!*Serial_Number@!@Serial_Number*!*Comment@!@Comment*!*Status@!@Status*!*Category@!@Category*!*Insp_By@!@Insp_By*!*Insp_Date@!@Insp_Date*!*Part@!@Part*!*WorkCenter@!@WorkCenter*!*Employee@!@Employee")
+					F.Data.DataTable.DeleteRow("Insp")
+					F.Data.DataTable.SaveToDB("Insp","con","GCG_6153_Serial_Insp","Job*!*Suffix*!*Seq*!*Serial_Number*!*Key_Seq",4)
+				F.Intrinsic.Control.EndIf
+				F.Data.DataTable.Close("Insp")
+			F.Intrinsic.Control.Next(V.Local.iCount)
+			
+			F.Data.DataTable.CreateFromSQL("Insp","con","Select Job, Suffix, Seq,Serial_Number, Key_Seq, WorkCenter, Status, Category, Comment, Employee, Insp_By, Insp_Date, Part From GCG_6153_Serial_Insp Where Job Not In(Select Job From V_Job_Header)",True)
+			F.Intrinsic.Control.If(V.DataTable.Insp.RowCount--,<>,-1)
+				F.Data.DataTable.SaveToDB("Insp","con","GCG_6153_HIST_INSP","",128,"Job@!@Job*!*Suffix@!@Suffix*!*Seq@!@Seq*!*Key_Seq@!@Key_Seq*!*Serial_Number@!@Serial_Number*!*Comment@!@Comment*!*Status@!@Status*!*Category@!@Category*!*Insp_By@!@Insp_By*!*Insp_Date@!@Insp_Date*!*Part@!@Part*!*WorkCenter@!@WorkCenter*!*Employee@!@Employee")
+				F.Data.DataTable.DeleteRow("Insp")
+				F.Data.DataTable.SaveToDB("Insp","con","GCG_6153_Serial_Insp","Job*!*Suffix*!*Seq*!*Serial_Number*!*Key_Seq",4)
+			F.Intrinsic.Control.EndIf
+			F.ODBC.Connection!con.Close
+		F.Intrinsic.Control.EndIf
+	
+F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.CallSub(Exit)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6153_Insp_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Main.End
+
+Program.Sub.FormSerialInspect_UnLoad.Start
+F.Intrinsic.Control.SetErrorHandler("FormSerialInspect_UnLoad_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+Gui.FormSerialInspect..Visible(False)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("FormSerialInspect_UnLoad_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6153_Insp_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.FormSerialInspect_UnLoad.End
+
+Program.Sub.Populate_Screen.Start
+F.Intrinsic.Control.SetErrorHandler("Populate_Screen_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sData.Declare(String,"")
+V.Local.sJob.Declare(String,"")
+V.Local.sSuffix.Declare(String,"")
+V.Local.sSeq.Declare(String,"")
+V.Local.sSql.Declare(String,"")
+V.Local.sTemp.Declare(String,"")
+
+F.Intrinsic.String.Split(V.Args.BDF,V.Ambient.NewLine,V.Local.sTemp)
+F.Intrinsic.Control.If(V.Local.sTemp.UBound,>,1)
+	F.Intrinsic.UI.Msgbox("Only 1 Work Order in the Update Work Order Screen to Inspect Serials.","Attention")
+	F.Intrinsic.Control.CallSub(Exit)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Split(V.Args.BDF,"|~|",V.Local.sData)
+
+V.Local.sData.RedimPreserve(0,2)
+
+F.Intrinsic.String.Split(V.Local.sData,"-",V.Local.sJob)
+V.Local.sJob.RedimPreserve(0,1)
+V.Local.sSuffix.Set(V.Local.sJob(1).Trim)
+V.Local.sSeq.Set(V.Local.sData(1).Trim)
+V.Global.sWC.Set(V.Local.sData(2).Trim)
+
+Gui.FormSerialInspect.txtJob.Text(V.Local.sJob.Trim)
+Gui.FormSerialInspect.txtSuffix.Text(V.Local.sSuffix.Trim)
+Gui.FormSerialInspect.txtSeq.Text(V.Local.sSeq.Trim)
+
+Gui.FormSerialInspect.ddlStatus.AddItem(" ",0)
+Gui.FormSerialInspect.ddlStatus.AddItem("Pass",1)
+Gui.FormSerialInspect.ddlStatus.AddItem("Rework",2)
+Gui.FormSerialInspect.ddlStatus.AddItem("Reject to Tech",3)
+
+Gui.FormSerialInspect.ddlCat.AddItem(" ",0)
+
+F.ODBC.Connection!Con.OpenCompanyConnection
+
+F.Intrinsic.String.Build("Select Part From V_Job_Header Where Job = '{0}' and Suffix = '{1}'",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sSeq,V.Local.sSql)
+
+F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Global.sPart)
+
+F.Intrinsic.String.Build("Select Qty_Order From V_Job_Header Where Job = '{0}' and Suffix = '{1}'",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sSeq,V.Local.sSql)
+
+F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Global.iQty)
+
+F.Intrinsic.String.Build("Select Top 1 Seq From V_Job_Operations Where Job = '{0}' and Suffix = '{1}' and LMO = 'L' and Part In(Select Distinct WorkCenter From GCG_6153_WC_CAT) Order by Seq",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sSql)
+
+F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Global.sFirstSeq)
+
+F.Intrinsic.String.Build("Select Top 1 Seq From V_Job_Operations Where Job = '{0}' and Suffix = '{1}' and LMO = 'L' and Part In(Select Distinct WorkCenter From GCG_6153_WC_CAT) Order by Seq Desc",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sSql)
+
+F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Global.sLastSeq)
+
+F.Intrinsic.Control.If(V.Global.sFirstSeq,<>,V.Local.sSeq)
+	V.Global.bShow.Set(False)
+F.Intrinsic.Control.Else
+	V.Global.bShow.Set(True)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Build("Select Top 1 Seq From V_Job_Operations Where Job = '{0}' and Suffix = '{1}' and LMO = 'L' and Seq < '{2}' and Part In(Select Distinct WorkCenter From GCG_6153_WC_CAT) Order by Seq",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sSeq,V.Local.sSql)
+
+F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Global.sPrevSeq)
+
+F.Intrinsic.String.Build("Select distinct a.job, a.suffix, a.Seq, a.Part From V_Job_Operations a Join GCG_6153_WC_CAT b on a.part = b.Workcenter Where Job = '{0}' and Suffix = '{1}' and LMO = 'L' and Seq < '{2}' Order by Seq",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sSeq,V.Local.sSql)
+
+F.Data.DataTable.CreateFromSQL("DefSeq","con",V.Local.sSql,True)
+
+F.Intrinsic.String.Build("Select Serial_Number, Key_Seq, Status, Seq From GCG_6153_Serial_Insp Where Job = '{0}' and Suffix = '{1}'",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sSql)
+
+F.Data.DataTable.CreateFromSQL("Serial","con",V.Local.sSql,True)
+
+F.Intrinsic.String.Build("Select Job, Suffix, Seq,Serial_Number, Key_Seq, WorkCenter, Status, Category, Comment, Employee, Insp_By, Insp_Date, Part From GCG_6153_Serial_Insp Where Job = '{0}' and Suffix = '{1}' and Seq = '{2}'",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sSeq.Trim,V.Local.sSql)
+
+F.Data.DataTable.CreateFromSQL("Result","con",V.Local.sSql,True)
+
+F.Intrinsic.String.Build("Select Rec_No, Category From GCG_6153_WC_CAT Where WorkCenter = '{0}'",V.Global.sWC.Trim,V.Local.sSql)
+
+F.Data.DataTable.CreateFromSQL("Cat","con",V.Local.sSql)
+
+F.Intrinsic.Control.If(V.DataTable.Cat.RowCount--,=,-1)
+	F.Intrinsic.String.Build("WorkCenter {0} has not been set up for Inspection.  Go to Menu Item Shop Floor Control > Administraion > WorkCenter Defect Categories (6153) to entry Defect Categories.",V.Global.sWC.Trim,V.Local.sTemp)
+	F.Intrinsic.UI.Msgbox(V.Local.sTemp,"Attention")
+	F.Data.DataTable.Close("Cat")
+	F.Intrinsic.Control.CallSub(Exit)
+F.Intrinsic.Control.EndIf
+
+Gui.FormSerialInspect.ddlCat.AddItems("Datatable","Cat","Rec_No","Category")
+
+F.Data.DataTable.Close("Cat")
+
+F.ODBC.Connection!Con.Close
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Populate_Screen_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6153_Insp_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Populate_Screen.End
+
+Program.Sub.Exit.Start
+F.Intrinsic.Control.SetErrorHandler("Exit_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.If(V.ODBC.Con.State,=,1)
+	F.ODBC.Connection!Con.Close
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Exit_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+Program.Sub.Exit.End
+
+Program.Sub.Set_Properties.Start
+F.Intrinsic.Control.SetErrorHandler("Set_Properties_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.If(V.Global.bShow)
+	Gui.FormSerialInspect.ddlStatus.ListIndex(1)
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.AddColumn("Result","Delete_Row",String)
+
+F.Data.DataView.Create("Result","VResult",22,"","Serial_Number,Key_Seq Desc")
+
+Gui.FormSerialInspect.GsGridResults.AddGridviewFromDataview("GResult","Result","VResult")
+
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Job","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Suffix","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Seq","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Serial_Number","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Key_Seq","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","WorkCenter","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Status","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Category","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Comment","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Employee","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Part","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_By","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_Date","AllowEdit",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Delete_Row","AllowEdit",False)
+
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Job","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Suffix","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Seq","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Serial_Number","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Key_Seq","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","WorkCenter","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Status","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Category","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Comment","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Employee","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Part","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_By","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_Date","ReadOnly",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Delete_Row","ReadOnly",True)
+
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Job","Visible",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Suffix","Visible",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Seq","Visible",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Serial_Number","Visible",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Key_Seq","Visible",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","WorkCenter","Visible",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Status","Visible",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Category","Visible",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Comment","Visible",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Employee","Visible",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Part","Visible",False)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_By","Visible",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_Date","Visible",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Delete_Row","Visible",V.Global.bShow)
+
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Job","Caption","Job")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Suffix","Caption","Suffix")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Seq","Caption","Sequence")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Serial_Number","Caption","Serial #")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Key_Seq","Caption","Key Seq")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","WorkCenter","Caption","WorkCenter")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Status","Caption","Status")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Category","Caption","Defect Category")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Comment","Caption","Comment")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Employee","Caption","Employee")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Part","Caption","Part")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_By","Caption","Inspected By")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_Date","Caption","Inspected Date")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Delete_Row","Caption"," ")
+
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Job","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Suffix","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Seq","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Serial_Number","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Key_Seq","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","WorkCenter","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Status","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Category","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Comment","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Employee","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Part","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_By","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_Date","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Delete_Row","HeaderBackColor",V.Enum.ThemeColors!ThemeColorDark)
+
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Job","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Suffix","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Seq","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Serial_Number","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Key_Seq","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","WorkCenter","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Status","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Category","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Comment","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Employee","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Part","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_By","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_Date","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Delete_Row","HeaderForeColor",V.Enum.ThemeColors!TextOnThemeColor)
+
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Job","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Suffix","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Seq","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Serial_Number","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Key_Seq","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","WorkCenter","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Status","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Category","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Comment","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Employee","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Part","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_By","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_Date","HeaderFontBold",True)
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Delete_Row","HeaderFontBold",True)
+
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Job","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Suffix","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Seq","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Serial_Number","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Key_Seq","Width","50")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","WorkCenter","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Status","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Category","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Comment","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Employee","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Part","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_By","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_Date","Width","100")
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Delete_Row","Width","50")
+
+Gui.FormSerialInspect.GsGridResults.SetColumnProperty("GResult","Insp_Date","DisplayCustomDatetime","d")
+
+Gui.FormSerialInspect.GsGridResults.ColumnEdit("GResult","Delete_Row","EditorButton","Delete")
+
+Gui.FormSerialInspect.GsGridResults.MainView("GResult")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Set_Properties_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6153_Insp_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Set_Properties.End
+
+Program.Sub.txtSerial_KeyPressEnter.Start
+F.Intrinsic.Control.SetErrorHandler("txtSerial_KeyPressEnter_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sSeq.Declare(String,"")
+V.Local.sRet.Declare(String,"")
+V.Local.sFilter.Declare(String,"")
+V.Local.sSerial.Declare(String,"")
+V.Local.i.Declare(Long,0)
+V.Local.sSeqList.Declare(String,"")
+
+V.Local.sSerial.Set(V.Screen.FormSerialInspect!txtSerial.Text)
+V.Local.sSeq.Set(V.Screen.FormSerialInspect!txtSeq.Text)
+
+F.Intrinsic.Control.BlockEvents
+
+F.Intrinsic.Control.If(V.Local.sSerial.Trim,<>,"")
+	'checking if current seq is first labor seq of the work order
+	F.Intrinsic.Control.If(V.Global.sFirstSeq,<>,V.Local.sSeq.Trim)
+		F.Intrinsic.String.Build("Serial_Number = '{0}'",V.Local.sSerial.Trim,V.Local.sFilter)
+		F.Data.DataTable.Select("Serial",V.Local.sFilter,V.Local.sRet)
+		F.Intrinsic.Control.If(V.Local.sRet,=,"***NORETURN***")
+			F.Intrinsic.String.Build("Serial Number: {0} has not been attached to Job {1}-{2}",V.Local.sSerial,V.Screen.FormSerialInspect!txtJob.Text,V.Screen.FormSerialInspect!txtSuffix.Text,V.Local.sFilter)
+			F.Intrinsic.UI.Msgbox(V.Local.sFilter,"Attention")
+			Gui.FormSerialInspect.txtSerial.Text("")
+			Gui.FormSerialInspect.txtSerial.SetFocus
+		F.Intrinsic.Control.Else
+			F.Intrinsic.String.Build("Seq < '{0}'",V.Local.sSeq,V.Local.sFilter)
+			F.Data.DataView.Create("DefSeq","VDefSeq",22,V.Local.sFilter,"")
+			F.Intrinsic.Control.For(V.Local.i,0,V.DataView.DefSeq!VDefSeq.RowCount--,1)
+				F.Intrinsic.String.Build("Serial_Number = '{0}' and Seq = '{1}'",V.Local.sSerial.Trim,V.DataView.DefSeq!VDefSeq(V.Local.i).Seq!FieldValTrim,V.Local.sFilter)
+				F.Data.DataView.Create("Serial","VSerial",22,V.Local.sFilter,"Key_Seq")
+				F.Intrinsic.Control.If(V.DataView.Serial!VSerial.RowCount--,<>,-1)
+					F.Intrinsic.Control.If(V.DataView.Serial!VSerial(V.DataView.Serial!VSerial.RowCount--).Status!FieldValTrim,<>,"Pass")
+						F.Intrinsic.Control.If(V.Local.sSeqList.Trim,=,"")
+							V.Local.sSeqList.Set(V.DataView.DefSeq!VDefSeq(V.Local.i).Seq!FieldValTrim)
+						F.Intrinsic.Control.Else
+							F.Intrinsic.String.Build("{0}, {1}",V.Local.sSeqList,V.DataView.DefSeq!VDefSeq(V.Local.i).Seq!FieldValTrim,V.Local.sSeqList)
+						F.Intrinsic.Control.EndIf
+					F.Intrinsic.Control.EndIf
+				F.Intrinsic.Control.Else
+					F.Intrinsic.Control.If(V.Local.sSeqList.Trim,=,"")
+						V.Local.sSeqList.Set(V.DataView.DefSeq!VDefSeq(V.Local.i).Seq!FieldValTrim)
+					F.Intrinsic.Control.Else
+						F.Intrinsic.String.Build("{0}, {1}",V.Local.sSeqList,V.DataView.DefSeq!VDefSeq(V.Local.i).Seq!FieldValTrim,V.Local.sSeqList)
+					F.Intrinsic.Control.EndIf
+				F.Intrinsic.Control.EndIf
+				F.Data.DataView.Close("Serial","VSerial")
+			F.Intrinsic.Control.Next(V.Local.i)
+			F.Data.DataView.Close("DefSeq","VDefSeq")
+			
+			F.Intrinsic.Control.If(V.Local.sSeqList,<>,"")
+				F.Intrinsic.String.Build("Serial Number: {0} has not been Passed Inspection at Labor Seq(s): {1}",V.Local.sSerial,V.Local.sSeqList,V.Local.sFilter)
+				F.Intrinsic.UI.Msgbox(V.Local.sFilter,"Attention")
+				Gui.FormSerialInspect.txtSerial.Text("")
+				Gui.FormSerialInspect.txtSerial.SetFocus
+			F.Intrinsic.Control.Else
+				F.Intrinsic.Control.If(V.Local.sSeq,=,V.Global.sLastSeq)
+					Gui.FormSerialInspect.ddlStatus.ListIndex(1)
+				F.Intrinsic.Control.EndIf
+				
+				Gui.FormSerialInspect.ddlStatus.SetFocus
+			F.Intrinsic.Control.EndIf
+'			'checking that the serial number has passed inspection at previous labor step
+'			F.Intrinsic.String.Build("Serial_Number = '{0}' and Seq = '{1}'",V.Local.sSerial.Trim,V.Global.sPrevSeq,V.Local.sFilter)
+'			F.Data.DataView.Create("Serial","VSerial",22,V.Local.sFilter,"Key_Seq")
+'			F.Intrinsic.Control.If(V.DataView.Serial!VSerial.RowCount--,<>,-1)
+'				F.Intrinsic.Control.If(V.DataView.Serial!VSerial(V.DataView.Serial!VSerial.RowCount--).Status!FieldValTrim,<>,"Pass")
+'					F.Intrinsic.String.Build("Serial Number: {0} has not been Passed Inspection at Labor Seq {1}",V.Local.sSerial,V.Global.sPrevSeq,V.Local.sFilter)
+'					F.Intrinsic.UI.Msgbox(V.Local.sFilter,"Attention")
+'					Gui.FormSerialInspect.txtSerial.Text("")
+'					Gui.FormSerialInspect.txtSerial.SetFocus
+'				F.Intrinsic.Control.Else
+'					Gui.FormSerialInspect.ddlStatus.SetFocus
+'				F.Intrinsic.Control.EndIf
+'			F.Intrinsic.Control.Else
+'				F.Intrinsic.String.Build("Serial Number: {0} has not been Inspected at Labor Seq {1}",V.Local.sSerial,V.Global.sPrevSeq,V.Local.sFilter)
+'				F.Intrinsic.UI.Msgbox(V.Local.sFilter,"Attention")
+'				Gui.FormSerialInspect.txtSerial.Text("")
+'				Gui.FormSerialInspect.txtSerial.SetFocus
+'			F.Intrinsic.Control.EndIf
+'			F.Data.DataView.Close("Serial","VSerial")
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Else
+		Gui.FormSerialInspect.ddlStatus.ListIndex(1)
+		Gui.FormSerialInspect.ddlStatus.SetFocus
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+Gui.FormSerialInspect.ddlStatus.ListIndex(1)
+
+F.Intrinsic.Control.UnBlockEvents
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("txtSerial_KeyPressEnter_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6153_Insp_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.txtSerial_KeyPressEnter.End
+
+Program.Sub.cmdSave_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmdSave_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sComm.Declare(String,"")
+V.Local.sStatus.Declare(String,"")
+V.Local.sDefect.Declare(String,"")
+V.Local.iRet.Declare(Long,0)
+V.Local.iKeySeq.Declare(Long,0)
+V.Local.sSerial.Declare(String,"")
+V.Local.sJob.Declare(String,"")
+V.Local.sSuffix.Declare(String,"")
+V.Local.sSeq.Declare(String,"")
+V.Local.sFilter.Declare(String,"")
+V.Local.bRet.Declare(Boolean,False)
+V.Local.bPass.Declare(Boolean,False)
+
+V.Local.sSerial.Set(V.Screen.FormSerialInspect!txtSerial.Text)
+V.Local.sJob.Set(V.Screen.FormSerialInspect!txtJob.Text)
+V.Local.sSuffix.Set(V.Screen.FormSerialInspect!txtSuffix.Text)
+V.Local.sSeq.Set(V.Screen.FormSerialInspect!txtSeq.Text)
+V.Local.sComm.Set(V.Screen.FormSerialInspect!txtComm.Text)
+V.Local.sStatus.Set(V.Screen.FormSerialInspect!ddlStatus.Value)
+V.Local.sDefect.Set(V.Screen.FormSerialInspect!ddlCat.Value)
+
+F.Intrinsic.Control.BlockEvents
+
+F.Intrinsic.Control.If(V.Local.sSerial.Trim,<>,"")
+	F.Intrinsic.String.Build("Serial_Number = '{0}'",V.Local.sSerial.Trim,V.Local.sFilter)
+	F.Data.DataView.Create("Result","Temp",22,V.Local.sFilter,"Key_Seq")
+	F.Intrinsic.Math.Add(V.DataView.Result!Temp.RowCount,1,V.Local.iKeySeq)
+	F.Intrinsic.Control.If(V.DataView.Result!Temp.RowCount--,<>,-1)
+		F.Intrinsic.Control.If(V.DataView.Result!Temp(0).Status!FieldValTrim,=,"Pass")
+			V.Local.bPass.Set(True)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+	F.Data.DataView.Close("Result","Temp")
+	F.Intrinsic.Control.If(V.Local.sStatus.Trim,=,"Pass")
+		F.Intrinsic.Control.If(V.Local.bPass)
+			F.Intrinsic.UI.Msgbox("Current Serial has already passed","Attention")
+			Gui.FormSerialInspect.txtSerial.Text("")
+			Gui.FormSerialInspect.ddlCat.ListIndex(0)
+			Gui.FormSerialInspect.ddlStatus.ListIndex(0)
+			Gui.FormSerialInspect.txtComm.Text("")
+
+			F.Intrinsic.Control.UnBlockEvents
+
+			F.Intrinsic.Control.ExitSub
+		F.Intrinsic.Control.EndIf
+		
+		F.Intrinsic.Control.If(V.Global.sSerials.Trim,=,"")
+			F.Intrinsic.Math.Add(V.Global.iCount,1,V.Global.iCount)
+			V.Global.sSerials.Set(V.Local.sSerial.Trim)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.Math.Add(V.Global.iCount,1,V.Global.iCount)
+			F.Intrinsic.String.Build("{0}|~|{1}",V.Global.sSerials,V.Local.sSerial.Trim,V.Global.sSerials)
+		F.Intrinsic.Control.EndIf
+		F.Data.DataTable.AddRow("Result","Job",V.Local.sJob.Trim,"Suffix",V.Local.sSuffix.Trim,"Seq",V.Local.sSeq.Trim,"Key_Seq",V.Local.iKeySeq,"Serial_Number",V.Local.sSerial.Trim,"Comment",V.Local.sComm.Trim,"Status",V.Local.sStatus.Trim,"Category",V.Local.sDefect.Trim,"Insp_By",V.Global.sName.Trim,"Insp_Date",V.Ambient.Now,"WorkCenter",V.Global.sWC.Trim,"Employee",V.Global.sEmp.Trim,"Part",V.Global.sPart.Trim)
+		F.ODBC.Connection!Con.OpenCompanyConnection
+		F.Data.DataTable.SaveToDB("Result","con","GCG_6153_Serial_Insp","Job*!*Suffix*!*Seq*!*Serial_Number*!*Key_Seq",3,"Job@!@Job*!*Suffix@!@Suffix*!*Seq@!@Seq*!*Key_Seq@!@Key_Seq*!*Serial_Number@!@Serial_Number*!*Comment@!@Comment*!*Status@!@Status*!*Category@!@Category*!*Insp_By@!@Insp_By*!*Insp_Date@!@Insp_Date*!*Part@!@Part*!*WorkCenter@!@WorkCenter*!*Employee@!@Employee")
+		F.Data.DataTable.AcceptChanges("Result")
+		F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.Else
+		F.Intrinsic.Control.If(V.Local.sStatus.Trim,<>,"")
+			F.Intrinsic.Control.If(V.Local.sDefect.Trim,<>,"")
+				F.Intrinsic.String.IsInString(V.Global.sSerials.Trim,V.Local.sSerial.Trim,True,V.Local.bRet)
+				F.Intrinsic.Control.If(V.Local.bRet)
+					F.Intrinsic.Math.Sub(V.Global.iCount,1,V.Global.iCount)
+					F.Intrinsic.String.Replace(V.Global.sSerials.Trim,V.Local.sSerial.Trim," ",V.Global.sSerials)
+				F.Intrinsic.Control.EndIf
+				F.Data.DataTable.AddRow("Result","Job",V.Local.sJob.Trim,"Suffix",V.Local.sSuffix.Trim,"Seq",V.Local.sSeq.Trim,"Key_Seq",V.Local.iKeySeq,"Serial_Number",V.Local.sSerial.Trim,"Comment",V.Local.sComm.Trim,"Status",V.Local.sStatus.Trim,"Category",V.Local.sDefect.Trim,"Insp_By",V.Global.sName.Trim,"Insp_Date",V.Ambient.now,"WorkCenter",V.Global.sWC.Trim,"Employee",V.Global.sEmp.Trim,"Part",V.Global.sPart.Trim)
+				F.ODBC.Connection!Con.OpenCompanyConnection
+				F.Data.DataTable.SaveToDB("Result","con","GCG_6153_Serial_Insp","Job*!*Suffix*!*Seq*!*Serial_Number*!*Key_Seq",3,"Job@!@Job*!*Suffix@!@Suffix*!*Seq@!@Seq*!*Key_Seq@!@Key_Seq*!*Serial_Number@!@Serial_Number*!*Comment@!@Comment*!*Status@!@Status*!*Category@!@Category*!*Insp_By@!@Insp_By*!*Insp_Date@!@Insp_Date*!*Part@!@Part*!*WorkCenter@!@WorkCenter*!*Employee@!@Employee")
+				F.Data.DataTable.AcceptChanges("Result")
+				F.ODBC.Connection!Con.Close
+			F.Intrinsic.Control.Else
+				F.Intrinsic.UI.Msgbox("No Defect has been Entered.  Do you still want to save?","Attention",4,V.Local.iRet)
+				F.Intrinsic.Control.If(V.Local.iRet,=,6)
+					F.Intrinsic.String.IsInString(V.Global.sSerials.Trim,V.Local.sSerial.Trim,True,V.Local.bRet)
+					F.Intrinsic.Control.If(V.Local.bRet)
+						F.Intrinsic.Math.Sub(V.Global.iCount,1,V.Global.iCount)
+						F.Intrinsic.String.Replace(V.Global.sSerials.Trim,V.Local.sSerial.Trim," ",V.Global.sSerials)
+					F.Intrinsic.Control.EndIf
+					F.Data.DataTable.AddRow("Result","Job",V.Local.sJob.Trim,"Suffix",V.Local.sSuffix.Trim,"Seq",V.Local.sSeq.Trim,"Key_Seq",V.Local.iKeySeq,"Serial_Number",V.Local.sSerial.Trim,"Comment",V.Local.sComm.Trim,"Status",V.Local.sStatus.Trim,"Category",V.Local.sDefect.Trim,"Insp_By",V.Global.sName.Trim,"Insp_Date",V.Ambient.now,"WorkCenter",V.Global.sWC.Trim,"Employee",V.Global.sEmp.Trim,"Part",V.Global.sPart.Trim)
+					F.ODBC.Connection!Con.OpenCompanyConnection
+					F.Data.DataTable.SaveToDB("Result","con","GCG_6153_Serial_Insp","Job*!*Suffix*!*Seq*!*Serial_Number*!*Key_Seq",3,"Job@!@Job*!*Suffix@!@Suffix*!*Seq@!@Seq*!*Key_Seq@!@Key_Seq*!*Serial_Number@!@Serial_Number*!*Comment@!@Comment*!*Status@!@Status*!*Category@!@Category*!*Insp_By@!@Insp_By*!*Insp_Date@!@Insp_Date*!*Part@!@Part*!*WorkCenter@!@WorkCenter*!*Employee@!@Employee")
+					F.Data.DataTable.AcceptChanges("Result")
+					F.ODBC.Connection!Con.Close
+				F.Intrinsic.Control.Else
+					Gui.FormSerialInspect.ddlCat.SetFocus
+					F.Intrinsic.Control.UnBlockEvents
+					F.Intrinsic.Control.ExitSub
+				F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.Else
+			F.Intrinsic.UI.Msgbox("Select a Status","Attention")
+			Gui.FormSerialInspect.ddlStatus.SetFocus
+			F.Intrinsic.Control.UnBlockEvents
+			F.Intrinsic.Control.ExitSub
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+	Gui.FormSerialInspect.ddlStatus.SetFocus
+F.Intrinsic.Control.Else
+	F.Intrinsic.UI.Msgbox("Scan a Serial Number","Attention")
+	Gui.FormSerialInspect.txtSerial.SetFocus
+F.Intrinsic.Control.EndIf
+
+Gui.FormSerialInspect.txtSerial.Text("")
+Gui.FormSerialInspect.ddlCat.ListIndex(0)
+Gui.FormSerialInspect.ddlStatus.ListIndex(0)
+Gui.FormSerialInspect.txtComm.Text("")
+Gui.FormSerialInspect.txtSerial.SetFocus
+F.Intrinsic.Control.UnBlockEvents
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdSave_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6153_Insp_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.cmdSave_Click.End
+
+Program.Sub.txtSerial_LostFocus.Start
+F.Intrinsic.Control.SetErrorHandler("txtSerial_LostFocus_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sSerial.Declare(String,"")
+
+V.Local.sSerial.Set(V.Screen.FormSerialInspect!txtSerial.Text)
+
+F.Intrinsic.Control.If(V.Local.sSerial.Trim,<>,"")
+	F.Intrinsic.Control.CallSub(txtSerial_KeyPressEnter)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("txtSerial_LostFocus_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6153_Insp_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.txtSerial_LostFocus.End
+
+Program.Sub.GsGridResults_RowCellClick.Start
+F.Intrinsic.Control.SetErrorHandler("GsGridResults_RowCellClick_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.iRet.Declare(Long,0)
+
+F.Intrinsic.Control.If(V.Args.Column.UCase,=,"DELETE_ROW")
+	F.Intrinsic.UI.Msgbox("Are you sure you want to delete?","Attention",4,V.Local.iRet)
+	F.Intrinsic.Control.If(V.Local.iRet,=,6)
+		F.ODBC.Connection!Con.OpenCompanyConnection
+		F.Data.DataTable.DeleteRow("Result",V.Args.RowIndex)
+		F.Data.DataTable.SaveToDB("Result","con","GCG_6153_Serial_Insp","Job*!*Suffix*!*Seq*!*Serial_Number*!*Key_Seq",4)
+		F.ODBC.Connection!Con.Close
+		F.Data.DataTable.AcceptChanges("Result")
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GsGridResults_RowCellClick_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6153_Insp_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.GsGridResults_RowCellClick.End
