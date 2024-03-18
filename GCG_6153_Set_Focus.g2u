@@ -1,0 +1,15 @@
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.Try
+
+	'setting focus to the serial text field on wip to fg lot screen.
+	F.Intrinsic.API.SetControlFocus(V.Caller.Switches)
+
+	F.Intrinsic.Control.End
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
